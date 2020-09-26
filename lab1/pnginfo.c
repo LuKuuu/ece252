@@ -33,24 +33,39 @@ void init_data(U8 *buf, int len, FILE *file);
 void init_data(U8 *buf, int len, FILE *file)
 {
     fread(buf, len, 1, file);
-    for (int i = 0; i < len; i+=2)
+    for (int i = 0; i < len; i += 2)
     {
         if (i % 32 == 0)
         {
             printf("\n");
         }
-        printf("%x%x ", buf[i], buf[i+1]);
+        printf("%x%x ", buf[i], buf[i + 1]);
     }
 }
 
 int main(int argc, char **argv)
 {
 
-    // char* filename = argv[1];
-    char *filename = "./starter/images/WEEF_1.png";
-    FILE *file = fopen(filename, "rb");
+    char *filename;
+    FILE *file;
+    U8 *signature_buffer;
+    struct data_IHDR *data_ihdr;
 
-    printf("%s: Not a PNG file\n", filename);
+    filename = argv[1];
+    file = fopen(filename, "rb");
+
+    signature_buffer = malloc(PNG_SIG_SIZE);
+    fread(signature_buffer, PNG_SIG_SIZE, 1, file);
+    if (is_png(signature_buffer, PNG_SIG_SIZE))
+    {
+        data_ihdr = (struct data_IHDR *)malloc(sizeof(struct data_IHDR));
+        get_png_data_IHDR(data_ihdr, file);
+        printf("%s: %d x %d\n", filename, data_ihdr->width, data_ihdr->height);
+    }
+    else
+    {
+        printf("%s: Not a PNG file\n", filename);
+    }
 
     U8 *p_buffer = NULL; /* a buffer that contains some data to play with */
     U32 crc_val = 0;     /* CRC value                                     */
@@ -68,7 +83,7 @@ int main(int argc, char **argv)
     }
 
     /* Step 1.2: Fill the buffer with some data */
-    init_data(p_buffer, BUF_LEN, file);
+    // init_data(p_buffer, BUF_LEN, file);
 
     /* Step 2: Demo how to use zlib utility */
     ret = mem_def(gp_buf_def, &len_def, p_buffer, BUF_LEN, Z_DEFAULT_COMPRESSION);
