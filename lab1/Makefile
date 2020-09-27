@@ -2,7 +2,7 @@
 # Yiqing Huang
 
 CC = gcc       # compiler
-CFLAGS = -Wall -g -std=c99 # compilation flags
+CFLAGS = -Wall -g -std=gnu99 # compilation flags
 LD = gcc       # linker
 LDFLAGS = -g   # debugging symbols in build
 LDLIBS = -lz   # link with libz
@@ -10,13 +10,23 @@ LDLIBS = -lz   # link with libz
 # For students 
 LIB_UTIL = zutil.o crc.o lab_png.o
 SRCS   = pnginfo.c crc.c zutil.c lab_png.c
-OBJS   = pnginfo.o $(LIB_UTIL) 
+PNGINFOOBJS   = pnginfo.o $(LIB_UTIL) 
+FINDPNGOBJS   = findpng.o $(LIB_UTIL) 
+CATPNGOBJS   = catpng.o $(LIB_UTIL) 
 
-TARGETS= pnginfo.out 
+PNGINFO= pnginfo.out
+FINDPNG= findpng.out 
+CATPNG = catpng.out
 
-all: ${TARGETS}
+all: ${PNGINFO} ${FINDPNG} ${CATPNG}
 
-pnginfo.out: $(OBJS) 
+pnginfo.out: $(PNGINFOOBJS) 
+	$(LD) -o $@ $^ $(LDLIBS) $(LDFLAGS) 
+
+findpng.out: ${FINDPNGOBJS}
+	$(LD) -o $@ $^ $(LDLIBS) $(LDFLAGS) 
+
+catpng.out: ${CATPNGOBJS}
 	$(LD) -o $@ $^ $(LDLIBS) $(LDFLAGS) 
 
 %.o: %.c 
@@ -30,14 +40,17 @@ pnginfo.out: $(OBJS)
 .PHONY: clean
 
 test:
-	./pnginfo.out ./starter/images/WEEF_1.png
-	./pnginfo.out ./starter/images/red-green-16x16-corrupted.png
-	./pnginfo.out ./starter/images/README.md
+	./${PNGINFO} ./starter/images/WEEF_1.png
+	./${PNGINFO} ./starter/images/red-green-16x16-corrupted.png
+	./${PNGINFO} ./starter/images/README.md
+	./${FINDPNG} .
 
 test_m:
-	valgrind --leak-check=full ./pnginfo.out ./starter/images/WEEF_1.png
-	valgrind --leak-check=full ./pnginfo.out ./starter/images/red-green-16x16-corrupted.png
-	valgrind --leak-check=full ./pnginfo.out ./starter/images/README.md
+	valgrind --leak-check=full ./${PNGINFO} ./starter/images/WEEF_1.png
+	valgrind --leak-check=full ./${PNGINFO} ./starter/images/red-green-16x16-corrupted.png
+	valgrind --leak-check=full ./${PNGINFO} ./starter/images/README.md
+	valgrind --leak-check=full ./${FINDPNG} .
+
 
 clean:
-	rm -f *.d *.o $(TARGETS) 
+	rm -f *.d *.o $(PNGINFO) 
