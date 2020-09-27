@@ -44,7 +44,7 @@ test:
 	./${PNGINFO} ./starter/images/red-green-16x16-corrupted.png
 	./${PNGINFO} ./starter/images/README.md
 	./${FINDPNG} .
-
+	./${CATPNG} ./starter/images/uweng_cropped/uweng_cropped_0.png ./starter/images/uweng_cropped/uweng_cropped_1.png ./starter/images/uweng_cropped/uweng_cropped_2.png ./starter/images/uweng_cropped/uweng_cropped_3.png ./starter/images/uweng_cropped/uweng_cropped_4.png ./starter/images/uweng_cropped/uweng_cropped_5.png ./starter/images/uweng_cropped/uweng_cropped_6.png
 test_m:
 	valgrind --leak-check=full ./${PNGINFO} ./starter/images/WEEF_1.png
 	valgrind --leak-check=full ./${PNGINFO} ./starter/images/red-green-16x16-corrupted.png

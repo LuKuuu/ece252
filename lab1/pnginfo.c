@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     {
         data_ihdr = (struct data_IHDR *)malloc(sizeof(struct data_IHDR));
         read_png_data_IHDR(data_ihdr, file);
-        printf("%s: %d x %d\n", filename, get_png_width(data_ihdr), get_png_height(data_ihdr));
+        printf("%s: %u x %u\n", filename, get_png_width(data_ihdr), get_png_height(data_ihdr));
 
         png_data = (struct simple_PNG *)malloc(sizeof(struct simple_PNG));
         read_png(png_data, file);

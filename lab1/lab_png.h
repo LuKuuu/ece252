@@ -58,17 +58,25 @@ typedef struct simple_PNG
     struct chunk *p_IEND;
 } * simple_PNG_p;
 
+extern U8 PNG_SIG[8];
+
 /******************************************************************************
  * FUNCTION PROTOTYPES 
  *****************************************************************************/
 int is_png(U8 *buf, size_t n);
-
+void init_png_data_IHDR(struct data_IHDR *data_ihdr);
 void read_png_data_IHDR(struct data_IHDR *out, FILE *fp);
-int get_png_height(struct data_IHDR *buf);
-int get_png_width(struct data_IHDR *buf);
+void set_png_width(struct data_IHDR *buf, U32 width);
+void set_png_height(struct data_IHDR *buf, U32 height);
+U32 get_png_height(struct data_IHDR *buf);
+U32 get_png_width(struct data_IHDR *buf);
 
+void init_chunk(struct chunk *chunk, U8 *type);
 void read_chunk(struct chunk *out, FILE *fp);
+void set_chunk_length(struct chunk *chunk_p, U32 chunk_length);
+void set_crc(struct chunk *chunk_p, U32 crc);
 U32 get_chunk_length(struct chunk *chunk_p);
 U32 get_crc(struct chunk *chunk_p);
 
+void init_png(struct simple_PNG *png_data);
 void read_png(struct simple_PNG *out, FILE *fp);
