@@ -68,8 +68,7 @@ int get_png_height(struct data_IHDR *buf);
 int get_png_width(struct data_IHDR *buf);
 
 void read_chunk(struct chunk *out, FILE *fp);
-U32 get_chunk_length(struct chunk * chunk_p);
+U32 get_chunk_length(struct chunk *chunk_p);
+U32 get_crc(struct chunk *chunk_p);
 
 void read_png(struct simple_PNG *out, FILE *fp);
-
-U32 get_crc(struct chunk *chunk_p);

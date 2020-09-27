@@ -34,5 +34,10 @@ test:
 	./pnginfo.out ./starter/images/red-green-16x16-corrupted.png
 	./pnginfo.out ./starter/images/README.md
 
+test_m:
+	valgrind --leak-check=full ./pnginfo.out ./starter/images/WEEF_1.png
+	valgrind --leak-check=full ./pnginfo.out ./starter/images/red-green-16x16-corrupted.png
+	valgrind --leak-check=full ./pnginfo.out ./starter/images/README.md
+
 clean:
 	rm -f *.d *.o $(TARGETS) 
