@@ -5,42 +5,33 @@
 #include "zutil.h"
 #include "lab_png.h"
 
-/******************************************************************************
- * DEFINED MACROS 
- *****************************************************************************/
-#define BUF_LEN (256 * 16)
-#define BUF_LEN2 (256 * 32)
-
-/******************************************************************************
- * GLOBALS 
- *****************************************************************************/
-U8 gp_buf_def[BUF_LEN2]; /* output buffer for mem_def() */
-U8 gp_buf_inf[BUF_LEN2]; /* output buffer for mem_inf() */
-
-/******************************************************************************
- * FUNCTION PROTOTYPES 
- *****************************************************************************/
-
-void init_data(U8 *buf, int len, FILE *file);
-
-/******************************************************************************
- * FUNCTIONS 
- *****************************************************************************/
-
-/**
- * @brief initialize memory with 256 chars 0 - 255 cyclically 
- */
-void init_data(U8 *buf, int len, FILE *file)
+//return 0 if no error, else return 1
+int check_crc(struct chunk *chunk_p)
 {
-    fread(buf, len, 1, file);
-    for (int i = 0; i < len; i += 2)
+
+    U64 len_def = 0;
+    U64 len_source = 4 + get_chunk_length(chunk_p);
+    printf("length: %d\n",get_chunk_length(chunk_p));
+    U8 *gp_buf_def = (U8 *)malloc(len_source * 2 * sizeof(U8));
+    // U8 *source = malloc(len_source * sizeof(U8));
+    // for (int i = 0; i < 4; i++) {
+    //     source[i] = chunk_p->type[i];
+    // }
+    // for (int i = 4; i < len_source; i++) {
+    //     source[i] = chunk_p->p_data[i - 4];
+    // }
+    // // memcpy(source, chunk_p->type, 4 * sizeof(U8));
+    // // memcpy(source + 4, chunk_p->p_data, get_chunk_length(chunk_p) * sizeof(U8));
+
+    mem_def(gp_buf_def, &len_def, chunk_p->p_data, get_chunk_length(chunk_p), Z_DEFAULT_COMPRESSION);
+    printf("%c\n", chunk_p->type[3]);
+    U32 crc_val = crc(gp_buf_def, len_def);
+    if (get_crc(chunk_p) != crc_val)
     {
-        if (i % 32 == 0)
-        {
-            printf("\n");
-        }
-        printf("%x%x ", buf[i], buf[i + 1]);
+        printf("%.4s chunk CRC error: computed %x, expected %x\n", chunk_p->type, crc_val, get_crc(chunk_p));
+        return 1;
     }
+    return 0;
 }
 
 int main(int argc, char **argv)
@@ -50,70 +41,32 @@ int main(int argc, char **argv)
     FILE *file;
     U8 *signature_buffer;
     struct data_IHDR *data_ihdr;
+    struct simple_PNG *png_data;
 
     filename = argv[1];
     file = fopen(filename, "rb");
 
     signature_buffer = malloc(PNG_SIG_SIZE);
+
     fread(signature_buffer, PNG_SIG_SIZE, 1, file);
     if (is_png(signature_buffer, PNG_SIG_SIZE))
     {
         data_ihdr = (struct data_IHDR *)malloc(sizeof(struct data_IHDR));
-        get_png_data_IHDR(data_ihdr, file);
-        printf("%s: %d x %d\n", filename, data_ihdr->width, data_ihdr->height);
+        read_png_data_IHDR(data_ihdr, file);
+        printf("%s: %d x %d\n", filename, get_png_width(data_ihdr),get_png_height(data_ihdr));
     }
     else
     {
         printf("%s: Not a PNG file\n", filename);
+        return 0;
     }
 
-    U8 *p_buffer = NULL; /* a buffer that contains some data to play with */
-    U32 crc_val = 0;     /* CRC value                                     */
-    int ret = 0;         /* return value for various routines             */
-    U64 len_def = 0;     /* compressed data length                        */
-    U64 len_inf = 0;     /* uncompressed data length                      */
+    png_data = (struct simple_PNG *)malloc(sizeof(struct simple_PNG));
+    read_png(png_data, file);
 
-    /* Step 1: Initialize some data in a buffer */
-    /* Step 1.1: Allocate a dynamic buffer */
-    p_buffer = malloc(BUF_LEN);
-    if (p_buffer == NULL)
-    {
-        perror("malloc");
-        return errno;
-    }
-
-    /* Step 1.2: Fill the buffer with some data */
-    // init_data(p_buffer, BUF_LEN, file);
-
-    /* Step 2: Demo how to use zlib utility */
-    ret = mem_def(gp_buf_def, &len_def, p_buffer, BUF_LEN, Z_DEFAULT_COMPRESSION);
-    if (ret == 0)
-    { /* success */
-        printf("original len = %d, len_def = %lu\n", BUF_LEN, len_def);
-    }
-    else
-    { /* failure */
-        fprintf(stderr, "mem_def failed. ret = %d.\n", ret);
-        return ret;
-    }
-
-    ret = mem_inf(gp_buf_inf, &len_inf, gp_buf_def, len_def);
-    if (ret == 0)
-    { /* success */
-        printf("original len = %d, len_def = %lu, len_inf = %lu\n",
-               BUF_LEN, len_def, len_inf);
-    }
-    else
-    { /* failure */
-        fprintf(stderr, "mem_def failed. ret = %d.\n", ret);
-    }
-
-    /* Step 3: Demo how to use the crc utility */
-    crc_val = crc(gp_buf_def, len_def); // down cast the return val to U32
-    printf("crc_val = %u\n", crc_val);
-
-    /* Clean up */
-    free(p_buffer); /* free dynamically allocated memory */
+    check_crc(png_data->p_IHDR);
+    check_crc(png_data->p_IDAT);
+    check_crc(png_data->p_IEND);
 
     return 0;
 }

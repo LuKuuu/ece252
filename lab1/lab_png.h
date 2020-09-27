@@ -1,7 +1,7 @@
 /**
  * @brief  micros and structures for a simple PNG file 
  *
- * Copyright 2018-2020 Yiqing Huang
+ * Copyright 2018-2020 Edward Li && Laura Liu
  *
  * This software may be freely redistributed under the terms of MIT License
  */
@@ -62,11 +62,14 @@ typedef struct simple_PNG
  * FUNCTION PROTOTYPES 
  *****************************************************************************/
 int is_png(U8 *buf, size_t n);
-int get_png(struct simple_PNG *out, FILE *fp);
 
-int read_chunk(struct *chunk, FILE *fp, long offset, int whence);
+void read_png_data_IHDR(struct data_IHDR *out, FILE *fp);
 int get_png_height(struct data_IHDR *buf);
 int get_png_width(struct data_IHDR *buf);
-int get_png_data_IHDR(struct data_IHDR *out, FILE *fp);
 
-/* declare your own functions prototypes here */
+void read_chunk(struct chunk *out, FILE *fp);
+U32 get_chunk_length(struct chunk * chunk_p);
+
+void read_png(struct simple_PNG *out, FILE *fp);
+
+U32 get_crc(struct chunk *chunk_p);
